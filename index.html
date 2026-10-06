@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hablapp — Hablas, y el texto aparece donde escribes</title>
+<meta name="description" content="Presionas una tecla, hablas y Hablapp escribe por ti en cualquier aplicación. Funciona en tu computador, sin cuentas. Gratis para Windows y Mac.">
+<meta property="og:title" content="Hablapp — Hablas, y el texto aparece donde escribes">
+<meta property="og:description" content="Dictado por voz en cualquier aplicación: WhatsApp, correo, Slack, Word o ChatGPT. Gratis para Windows y Mac.">
+<meta property="og:image" content="https://juanfelareal.github.io/hablapp/og.jpg">
+<meta property="og:url" content="https://juanfelareal.github.io/hablapp/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0EB;
+    --paper: #FFFFFF;
+    --ink: #0D1B2A;
+    --ink-2: #3A4757;
+    --muted: #6B7685;
+    --line: #E4DDD4;
+    --green: #16a34a;
+    --green-bright: #4ADE80;
+    --green-soft: #E3F4E8;
+    --shadow: 0 1px 2px rgba(13,27,42,.04), 0 8px 24px rgba(13,27,42,.06);
+    --shadow-lg: 0 2px 4px rgba(13,27,42,.05), 0 24px 60px rgba(13,27,42,.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: Inter, -apple-system, "Segoe UI", sans-serif; background: var(--cream); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* Nav */
+  nav { position: sticky; top: 0; z-index: 20; background: rgba(245,240,235,.85); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid transparent; transition: border-color .2s; }
+  nav.scrolled { border-bottom-color: var(--line); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 19px; letter-spacing: -.5px; text-decoration: none; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; }
+  .nav-links { display: flex; align-items: center; gap: 28px; font-size: 14px; font-weight: 500; color: var(--ink-2); }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--ink); }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 50px; font-weight: 600; font-size: 15px; text-decoration: none; transition: transform .15s, box-shadow .15s, background .15s; border: 1px solid transparent; white-space: nowrap; }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .btn-primary { background: var(--ink); color: #fff; box-shadow: 0 6px 18px rgba(13,27,42,.18); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(13,27,42,.24); }
+  .btn-ghost { background: var(--paper); color: var(--ink); border-color: var(--line); }
+  .btn-ghost:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .btn-sm { padding: 9px 16px; font-size: 14px; }
+
+  /* Hero */
+  .hero { padding: 84px 0 96px; position: relative; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(600px 400px at 85% 20%, rgba(74,222,128,.16), transparent 70%), radial-gradient(500px 360px at 0% 90%, rgba(13,27,42,.05), transparent 70%); pointer-events: none; }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; position: relative; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px; background: var(--paper); border: 1px solid var(--line); font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-2); }
+  .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+  h1 { font-size: 72px; font-weight: 900; letter-spacing: -3px; line-height: 1.0; margin: 22px 0 22px; }
+  h1 em { font-style: normal; color: var(--green); }
+  .lead { font-size: 19px; color: var(--ink-2); max-width: 520px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+  .fine { margin-top: 16px; font-size: 13px; color: var(--muted); }
+
+  /* Demo: ventana de correo + píldora */
+  .demo { justify-self: end; width: 100%; max-width: 470px; position: relative; padding-bottom: 64px; }
+  .mock { background: var(--paper); border-radius: 18px; box-shadow: var(--shadow-lg); border: 1px solid rgba(13,27,42,.06); overflow: hidden; }
+  .mock-bar { display: flex; align-items: center; gap: 7px; padding: 13px 16px; border-bottom: 1px solid #EEE9E3; }
+  .mock-bar i { width: 10px; height: 10px; border-radius: 50%; background: #E6E0D8; }
+  .mock-bar span { margin-left: 8px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .mock-field { display: flex; gap: 10px; padding: 11px 18px; border-bottom: 1px solid #F1ECE6; font-size: 14px; color: var(--muted); }
+  .mock-field b { color: var(--ink); font-weight: 500; }
+  .mock-body { padding: 18px 18px 26px; min-height: 168px; font-size: 15.5px; line-height: 1.6; color: var(--ink); }
+  .mock-body .caret { display: inline-block; width: 1.5px; height: 18px; background: var(--green); vertical-align: -3px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .rec { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%) translateY(6px); opacity: 0; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px 0 9px; min-width: 210px; background: #111214; color: #fff; border-radius: 22px; box-shadow: 0 10px 28px rgba(13,27,42,.28); transition: opacity .25s, transform .3s cubic-bezier(.2,.9,.3,1.2); }
+  .rec.on { opacity: 1; transform: translateX(-50%); }
+  .rec .spark { width: 26px; height: 26px; border-radius: 13px; background: rgba(255,255,255,.08); display: grid; place-items: center; color: rgba(255,255,255,.55); }
+  .rec .spark svg { width: 14px; height: 14px; }
+  .rec .bars { flex: 1; display: flex; align-items: center; justify-content: center; gap: 3px; height: 24px; }
+  .rec .bars span { width: 3px; height: 4px; border-radius: 2px; background: #fff; transition: height .09s linear; }
+  .rec .status { flex: 1; text-align: center; font-size: 13px; font-weight: 600; display: none; }
+  .rec.busy .bars { display: none; } .rec.busy .status { display: block; }
+  .rec .time { font-size: 12px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; min-width: 30px; text-align: right; }
+  .rec.busy .time { visibility: hidden; }
+  .keyhint { position: absolute; right: -6px; top: -18px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); background: var(--paper); border: 1px solid var(--line); border-radius: 50px; padding: 5px 12px 5px 6px; box-shadow: var(--shadow); }
+  .keyhint kbd { transition: background .15s, color .15s, transform .1s; }
+  .keyhint.down kbd { background: var(--green); color: #fff; border-color: var(--green); transform: translateY(1px); }
+
+  /* Sections */
+  section { padding: 100px 0; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 14px; }
+  h2 { font-size: 52px; font-weight: 900; letter-spacing: -2px; line-height: 1.05; max-width: 760px; }
+  .sub { margin-top: 16px; font-size: 18px; color: var(--ink-2); max-width: 620px; }
+
+  /* OS switch */
+  .switch { display: inline-flex; padding: 4px; background: var(--paper); border: 1px solid var(--line); border-radius: 50px; margin-top: 28px; }
+  .switch button { border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; padding: 8px 18px; border-radius: 50px; color: var(--muted); cursor: pointer; transition: background .15s, color .15s; }
+  .switch button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+  /* Features */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; }
+  .card { background: var(--paper); border-radius: 18px; padding: 28px; box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .card .emoji { font-size: 26px; margin-bottom: 18px; }
+  .card h3 { font-size: 20px; font-weight: 700; letter-spacing: -.4px; margin-bottom: 8px; }
+  .card p { font-size: 15px; color: var(--ink-2); flex: 1; }
+  .keys { display: flex; gap: 5px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
+  kbd { font-family: inherit; display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 7px; background: #F6F3EF; border: 1px solid #E4DDD4; border-bottom-width: 2px; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .keys span { font-size: 13px; color: var(--muted); }
+
+  /* Comparación hablar vs escribir */
+  .calc { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .calc-box { background: var(--ink); color: #fff; border-radius: 20px; padding: 10px; box-shadow: var(--shadow-lg); }
+  .calc-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 18px; border-radius: 12px; font-size: 16px; }
+  .calc-row + .calc-row { border-top: 1px solid rgba(255,255,255,.07); }
+  .calc-row span { color: rgba(255,255,255,.75); }
+  .calc-row b { color: var(--green-bright); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .calc-row.big b { font-size: 26px; font-weight: 900; letter-spacing: -.5px; }
+  .meter { margin-top: 8px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .meter i { display: block; height: 100%; border-radius: 4px; }
+  .calc-note { font-size: 12px; color: rgba(255,255,255,.45); padding: 6px 18px 12px; }
+
+  /* Install */
+  .install { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 44px; }
+  .steps { background: var(--paper); border-radius: 20px; padding: 32px; box-shadow: var(--shadow); }
+  .steps h3 { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+  .steps h3 svg { width: 22px; height: 22px; }
+  .steps .req { font-size: 13px; color: var(--muted); margin: 4px 0 22px; }
+  .steps ol { list-style: none; counter-reset: s; }
+  .steps li { counter-increment: s; position: relative; padding: 0 0 18px 42px; font-size: 15px; color: var(--ink-2); }
+  .steps li::before { content: counter(s); position: absolute; left: 0; top: -1px; width: 26px; height: 26px; border-radius: 7px; background: var(--green-soft); color: var(--green); font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+  .steps li b { color: var(--ink); font-weight: 600; }
+  .note { margin-top: 6px; padding: 14px 16px; border-radius: 12px; background: #FBF8F4; border: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
+  .note code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; background: #fff; border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; word-break: break-all; }
+  .steps .btn { margin-top: 22px; }
+
+  /* Uso */
+  .usage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; }
+  .use { background: var(--paper); border-radius: 18px; padding: 26px 28px; box-shadow: var(--shadow); }
+  .use .keys { margin: 0 0 16px; }
+  .use h3 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 6px; }
+  .use p { font-size: 15px; color: var(--ink-2); }
+
+  /* Privacy band */
+  .dark { background: var(--ink); color: #fff; position: relative; overflow: hidden; }
+  .dark::before { content: ""; position: absolute; inset: 0; background: radial-gradient(700px 400px at 90% 0%, rgba(74,222,128,.14), transparent 70%); }
+  .dark .wrap { position: relative; }
+  .dark .tag { color: var(--green-bright); }
+  .dark .sub { color: rgba(255,255,255,.7); }
+  .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,.08); border-radius: 18px; overflow: hidden; margin-top: 48px; }
+  .facts div { background: var(--ink); padding: 28px 24px; }
+  .facts b { display: block; font-size: 40px; font-weight: 900; letter-spacing: -1.5px; color: var(--green-bright); line-height: 1.1; }
+  .facts span { font-size: 14px; color: rgba(255,255,255,.7); }
+
+  /* FAQ */
+  .faq { max-width: 780px; margin-top: 40px; }
+  details { background: var(--paper); border-radius: 14px; padding: 0 22px; box-shadow: var(--shadow); margin-bottom: 10px; }
+  summary { cursor: pointer; list-style: none; padding: 20px 0; font-weight: 600; font-size: 16px; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; font-size: 22px; line-height: 1; color: var(--muted); transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { padding: 0 0 20px; color: var(--ink-2); font-size: 15px; }
+
+  footer { padding: 48px 0 56px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+  [data-os="win"] .only-mac, [data-os="mac"] .only-win { display: none; }
+
+  @media (max-width: 900px) {
+    .hero .wrap, .calc, .install { grid-template-columns: 1fr; }
+    .demo { justify-self: start; }
+    .grid, .usage { grid-template-columns: 1fr 1fr; }
+    .facts { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .wrap { padding: 0 16px; }
+    .nav-links a:not(.btn) { display: none; }
+    .hero { padding: 48px 0 64px; }
+    h1 { font-size: 40px; letter-spacing: -1.5px; }
+    h2 { font-size: 30px; letter-spacing: -1px; }
+    .lead { font-size: 17px; }
+    section { padding: 64px 0; }
+    .grid, .usage { grid-template-columns: 1fr; }
+    .cta .btn { flex: 1 1 100%; justify-content: center; }
+    .steps { padding: 24px; }
+    .facts b { font-size: 30px; }
+    .keyhint { right: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .rec, .mock-body .caret { transition: none; animation: none; } }
+</style>
+</head>
+<body data-os="win">
+
+<nav id="nav">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="icon.png" alt="">Hablapp</a>
+    <div class="nav-links">
+      <a href="#funciones">Funciones</a>
+      <a href="#instalar">Instalar</a>
+      <a href="#preguntas">Preguntas</a>
+      <a class="btn btn-primary btn-sm" href="#instalar">Descargar</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="pill"><i></i>Gratis · Windows y Mac</span>
+      <h1>Hablas, y el texto <em>aparece donde escribes.</em></h1>
+      <p class="lead">Presionas una tecla, dices lo que quieres escribir y Hablapp lo escribe por ti en cualquier aplicación: WhatsApp, correo, Slack, Word o ChatGPT. La voz se procesa en tu computador.</p>
+      <div class="cta">
+        <a class="btn btn-primary dl-win" href="https://github.com/juanfelareal/hablapp/releases/latest/download/Hablapp-Windows.exe">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.4 4.5v7H3zm0 13 7.4 1v-7H3zm8.4 1.1L21 21v-8.5h-9.6zm0-15.2v7.1H21V3z"/></svg>
+          Descargar para Windows
+        </a>
+        <a class="btn btn-ghost dl-mac" href="https://github.com/juanfelareal/hablapp/releases/latest/download/Hablapp-mac.zip">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.27-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.66zM14.1 5.84c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.09 1.75-.96 2.78 1.02.08 2.05-.52 2.68-1.26z"/></svg>
+          Descargar para Mac
+        </a>
+      </div>
+      <p class="fine"><span id="ver">Versión actual</span> · Windows 10 y 11 · Mac con chip Apple (M1 o más nuevo)</p>
+    </div>
+
+    <div class="demo" aria-hidden="true">
+      <div class="mock">
+        <div class="mock-bar"><i></i><i></i><i></i><span>Nuevo mensaje</span></div>
+        <div class="mock-field">Para <b>equipo@larealmarketing.com</b></div>
+        <div class="mock-field">Asunto <b>Propuesta de Onside</b></div>
+        <div class="mock-body"><span id="typed"></span><span class="caret"></span></div>
+      </div>
+      <div class="keyhint" id="keyhint"><kbd><span class="only-win">Ctrl derecho</span><span class="only-mac">⌘ derecho</span></kbd>mantén y habla</div>
+      <div class="rec" id="rec">
+        <span class="spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 2l1.6 4.4L15.5 8l-4.4 1.6L9.5 14 7.9 9.6 3.5 8l4.4-1.6zM18 11l.9 2.6 2.6.9-2.6.9L18 18l-.9-2.6-2.6-.9 2.6-.9z"/></svg></span>
+        <span class="bars" id="bars"></span>
+        <span class="status">Transcribiendo…</span>
+        <span class="time" id="time">0:00</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="funciones">
+  <div class="wrap">
+    <span class="tag">Funciones</span>
+    <h2>Escribir sin teclado, en cualquier parte.</h2>
+    <p class="sub">Vive junto al reloj (Windows) o en la barra de menú (Mac). No hay que abrir nada: desde cualquier app presionas tu tecla y hablas.</p>
+    <div class="switch" role="group" aria-label="Sistema operativo">
+      <button type="button" data-set-os="win" aria-pressed="true">Windows</button>
+      <button type="button" data-set-os="mac" aria-pressed="false">Mac</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="emoji">🎙️</div>
+        <h3>Dicta en cualquier app</h3>
+        <p>El texto se pega donde tengas el cursor: un chat, un correo, un documento, una celda de Excel o la caja de ChatGPT. Lo que tenías copiado se queda como estaba.</p>
+        <div class="keys only-win"><kbd>Ctrl</kbd><span>derecho</span></div>
+        <div class="keys only-mac"><kbd>⌘</kbd><span>derecho</span></div>
+      </div>
+      <div class="card">
+        <div class="emoji">👆</div>
+        <h3>Tocas o mantienes</h3>
+        <p>Un toque empieza a grabar y otro toque termina, para dictar con las manos libres. Si mantienes la tecla, graba mientras la tengas presionada. Con Esc cancelas.</p>
+        <div class="keys"><kbd>Esc</kbd><span>cancelar</span></div>
+      </div>
+      <div class="card">
+        <div class="emoji">🔒</div>
+        <h3>Funciona sin internet</h3>
+        <p>Usa Whisper, el modelo de reconocimiento de voz de OpenAI, instalado en tu computador. Lo que dices no sale de tu equipo y no necesitas cuenta.</p>
+      </div>
+      <div class="card">
+        <div class="emoji">📖</div>
+        <h3>Aprende tus palabras</h3>
+        <p>Agrega nombres de clientes, marcas o términos de tu trabajo para que los escriba bien. También puedes crear reemplazos: dices «la real» y escribe «LA REAL».</p>
+      </div>
+      <div class="card">
+        <div class="emoji">🎧</div>
+        <h3>Transcribe audios y videos</h3>
+        <p>Arrastra una nota de voz, una grabación de reunión o un video y Hablapp te devuelve el texto. Acepta MP3, M4A, WAV, MP4 y MOV.</p>
+      </div>
+      <div class="card">
+        <div class="emoji">🗂️</div>
+        <h3>Historial de todo lo que dictas</h3>
+        <p>Cada dictado queda guardado con su audio, para buscarlo, copiarlo o volver a transcribirlo. El panel te muestra cuánto tiempo llevas ahorrado.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap calc">
+    <div>
+      <span class="tag">Hablar vs. escribir</span>
+      <h2>Hablando vas casi cuatro veces más rápido.</h2>
+      <p class="sub">Una persona escribe en teclado unas 35 palabras por minuto. Hablando se pasa de 120. Estos son los números reales del Hablapp de Juan Felipe después de 1.348 dictados.</p>
+    </div>
+    <div class="calc-box" aria-label="Comparación de velocidad">
+      <div class="calc-row" style="display:block">
+        <div style="display:flex;justify-content:space-between"><span>Hablando</span><b>127 palabras/min</b></div>
+        <div class="meter"><i style="width:100%;background:var(--green-bright)"></i></div>
+      </div>
+      <div class="calc-row" style="display:block">
+        <div style="display:flex;justify-content:space-between"><span>Escribiendo</span><b style="color:rgba(255,255,255,.75)">35 palabras/min</b></div>
+        <div class="meter"><i style="width:27.5%;background:rgba(255,255,255,.35)"></i></div>
+      </div>
+      <div class="calc-row"><span>Palabras dictadas</span><b>53.050</b></div>
+      <div class="calc-row"><span>Tiempo hablando</span><b>6 h 56 min</b></div>
+      <div class="calc-row big"><span>Tiempo ahorrado</span><b>18 h 19 min</b></div>
+      <div class="calc-note">Datos del panel de Hablapp. El tiempo ahorrado compara el tiempo hablando con lo que habría tomado escribir lo mismo a 35 palabras por minuto.</div>
+    </div>
+  </div>
+</section>
+
+<section id="instalar" style="padding-top:0">
+  <div class="wrap">
+    <span class="tag">Instalar</span>
+    <h2>Cinco minutos y queda lista.</h2>
+    <p class="sub">Hablapp no viene de Microsoft Store ni de la App Store, así que la primera vez el sistema te pide confirmar que quieres abrirla. Es normal y pasa una sola vez.</p>
+
+    <div class="install">
+      <div class="steps" id="steps-win">
+        <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.4 4.5v7H3zm0 13 7.4 1v-7H3zm8.4 1.1L21 21v-8.5h-9.6zm0-15.2v7.1H21V3z"/></svg>Windows</h3>
+        <p class="req">Windows 10 u 11 · 64 bits · 2 GB libres</p>
+        <ol>
+          <li>Abre <b>Hablapp-Windows.exe</b>.</li>
+          <li>Si sale <i>«Windows protegió su PC»</i>, dale <b>Más información → Ejecutar de todas formas</b>.</li>
+          <li>Sigue el instalador. Al abrir Hablapp, descarga el modelo recomendado, <b>Large v3 Turbo</b> (547 MB, una sola vez).</li>
+          <li>Prueba el micrófono y listo: presiona <b>Ctrl derecho</b> en cualquier app y habla.</li>
+        </ol>
+        <div class="note">Si tu computador es antiguo y la transcripción se demora, cambia al modelo <b>Small</b> en <b>AI Models</b>.</div>
+        <a class="btn btn-primary dl-win" href="https://github.com/juanfelareal/hablapp/releases/latest/download/Hablapp-Windows.exe">Descargar para Windows</a>
+      </div>
+
+      <div class="steps" id="steps-mac">
+        <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.27-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.66zM14.1 5.84c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.09 1.75-.96 2.78 1.02.08 2.05-.52 2.68-1.26z"/></svg>Mac</h3>
+        <p class="req">macOS 14 Sonoma o más nuevo · solo Mac con chip Apple (M1, M2, M3, M4)</p>
+        <ol>
+          <li>Abre <b>Hablapp-mac.zip</b> y arrastra Hablapp a <b>Aplicaciones</b>.</li>
+          <li>Ábrela. Si sale <i>«Apple no pudo verificar…»</i>, dale <b>Listo</b>.</li>
+          <li>Ve a <b>Ajustes del Sistema → Privacidad y seguridad</b>, baja hasta el final y dale <b>Abrir igualmente</b>.</li>
+          <li>Dale permiso al <b>Micrófono</b> y a <b>Accesibilidad</b> (para pegar el texto), descarga un modelo y presiona <b>⌘ derecho</b> para dictar.</li>
+        </ol>
+        <div class="note">¿Usas Terminal? Puedes saltarte los pasos 2 y 3 con <code>xattr -cr /Applications/Hablapp.app</code></div>
+        <a class="btn btn-primary dl-mac" href="https://github.com/juanfelareal/hablapp/releases/latest/download/Hablapp-mac.zip">Descargar para Mac</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <span class="tag">Cómo se usa</span>
+    <h2>Una tecla, tres gestos.</h2>
+    <div class="usage">
+      <div class="use">
+        <div class="keys only-win"><kbd>Ctrl</kbd><span>derecho · toque</span></div>
+        <div class="keys only-mac"><kbd>⌘</kbd><span>derecho · toque</span></div>
+        <h3>Manos libres</h3>
+        <p>Un toque empieza a grabar. Hablas lo que necesites y otro toque termina y pega el texto.</p>
+      </div>
+      <div class="use">
+        <div class="keys only-win"><kbd>Ctrl</kbd><span>derecho · mantener</span></div>
+        <div class="keys only-mac"><kbd>⌘</kbd><span>derecho · mantener</span></div>
+        <h3>Mientras la presionas</h3>
+        <p>Para frases cortas: mantienes la tecla, hablas y al soltarla aparece el texto.</p>
+      </div>
+      <div class="use">
+        <div class="keys"><kbd>Esc</kbd><span>mientras graba</span></div>
+        <h3>Cancelar</h3>
+        <p>Si te equivocaste o te interrumpieron, Esc descarta la grabación y no se pega nada.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="dark">
+  <div class="wrap">
+    <span class="tag">Privacidad</span>
+    <h2>Tu voz se queda en tu computador.</h2>
+    <p class="sub">Hablapp transcribe en tu equipo, sin servidores ni cuentas. Solo se conecta a internet para descargar el modelo la primera vez, o si tú activas por tu cuenta un servicio en la nube. El historial se guarda en tu disco y lo puedes borrar cuando quieras.</p>
+    <div class="facts">
+      <div><b>100%</b><span>transcripción local</span></div>
+      <div><b>0</b><span>cuentas o registros</span></div>
+      <div><b>+90</b><span>idiomas, con detección automática</span></div>
+      <div><b>$0</b><span>gratis para siempre</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="preguntas">
+  <div class="wrap">
+    <span class="tag">Preguntas</span>
+    <h2>Preguntas frecuentes</h2>
+    <div class="faq">
+      <details>
+        <summary>¿Por qué el sistema dice que no puede verificar la app?</summary>
+        <p>Porque Hablapp se distribuye directamente y no por Microsoft Store o la App Store, que cobran por firmar las apps. El aviso sale con cualquier app que no venga de una tienda. Se confirma una sola vez.</p>
+      </details>
+      <details>
+        <summary>¿Qué tan rápido transcribe?</summary>
+        <p>Depende del computador. En un Mac con chip Apple tarda alrededor de un segundo. En un PC con Windows tarda unos segundos por dictado con el modelo recomendado. Si se te hace lento, cambia al modelo <b>Small</b> o <b>Base</b> en <b>AI Models</b>.</p>
+      </details>
+      <details>
+        <summary>¿Entiende español colombiano?</summary>
+        <p>Sí. Detecta el idioma solo, así que puedes dictar en español o en inglés sin cambiar nada. Para nombres propios, marcas o términos raros, agrégalos en <b>Dictionary</b> y los escribirá bien.</p>
+      </details>
+      <details>
+        <summary>¿Puedo cambiar la tecla?</summary>
+        <p>Sí, en <b>Settings → Hablapp Shortcuts</b>. Puedes elegir otra tecla o grabar una combinación. En Windows con teclado en español no uses el Alt derecho, porque es la tecla AltGr que sirve para escribir la @.</p>
+      </details>
+      <details>
+        <summary>¿Puede corregir el texto con IA?</summary>
+        <p>Es opcional. En <b>Enhancement</b> puedes conectar Gemini, OpenAI, Claude u otro proveedor con tu propia API key para que quite muletillas y arregle la puntuación. Si lo activas, el texto se envía a ese proveedor. Viene apagado.</p>
+      </details>
+      <details>
+        <summary>¿Cómo actualizo?</summary>
+        <p>Descarga la versión nueva desde esta página e instálala encima de la anterior. Tu historial, tu diccionario, tus ajustes y el modelo descargado se conservan.</p>
+      </details>
+      <details>
+        <summary>¿Cómo la desinstalo?</summary>
+        <p>En Windows: Configuración → Aplicaciones → Hablapp → Desinstalar. Tus datos quedan en <b>%APPDATA%\Hablapp</b> por si la vuelves a instalar; bórrala si quieres eliminarlos. En Mac: cierra Hablapp y bórrala de Aplicaciones.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Hablapp · basado en VoiceInk (código abierto, GPL-3.0) · compartido por Juan Felipe</span>
+    <a href="https://github.com/juanfelareal/hablapp/releases">Todas las versiones</a>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var body = document.body;
+    function setOS(os) {
+      body.setAttribute('data-os', os);
+      document.querySelectorAll('[data-set-os]').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-set-os') === os));
+      });
+      // El botón principal del hero apunta al sistema del visitante
+      var hero = document.querySelector('.hero .cta');
+      var mac = hero.querySelector('.dl-mac'), win = hero.querySelector('.dl-win');
+      var first = os === 'mac' ? mac : win, second = os === 'mac' ? win : mac;
+      first.className = first.className.replace('btn-ghost', 'btn-primary');
+      second.className = second.className.replace('btn-primary', 'btn-ghost');
+      hero.insertBefore(first, hero.firstChild);
+      // En la sección de instalar, el sistema del visitante va primero
+      var install = document.querySelector('.install');
+      install.insertBefore(document.getElementById(os === 'mac' ? 'steps-mac' : 'steps-win'), install.firstChild);
+    }
+    var ua = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent;
+    setOS(/mac/i.test(ua) ? 'mac' : 'win');
+    document.querySelectorAll('[data-set-os]').forEach(function (b) {
+      b.addEventListener('click', function () { setOS(b.getAttribute('data-set-os')); });
+    });
+
+    var nav = document.getElementById('nav');
+    window.addEventListener('scroll', function () { nav.classList.toggle('scrolled', window.scrollY > 8); }, { passive: true });
+
+    fetch('https://api.github.com/repos/juanfelareal/hablapp/releases/latest')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (r) { if (r && r.tag_name) document.getElementById('ver').textContent = 'Versión ' + r.tag_name.replace(/^v/, ''); })
+      .catch(function () {});
+
+    // Demo: mantener la tecla → grabar → transcribir → aparece el texto
+    var phrases = [
+      'Hola equipo, les comparto la propuesta de Onside. Revisen los precios y me cuentan antes del viernes.',
+      'Ana, ¿podemos mover la reunión para el jueves a las tres? El martes tengo grabación con el cliente.',
+      'Recordatorio: la campaña sale el lunes. Necesito los creativos finales a más tardar mañana al mediodía.'
+    ];
+    var typed = document.getElementById('typed'), rec = document.getElementById('rec'), key = document.getElementById('keyhint');
+    var barsEl = document.getElementById('bars'), timeEl = document.getElementById('time');
+    var bars = [];
+    for (var i = 0; i < 17; i++) { var s = document.createElement('span'); barsEl.appendChild(s); bars.push(s); }
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var idx = 0, waveTimer = null;
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function wave(on) {
+      clearInterval(waveTimer);
+      if (!on) { bars.forEach(function (b) { b.style.height = '4px'; }); return; }
+      var t0 = Date.now();
+      waveTimer = setInterval(function () {
+        var el = (Date.now() - t0) / 1000;
+        timeEl.textContent = '0:0' + Math.floor(el);
+        bars.forEach(function (b, i) {
+          var center = 1 - Math.abs(i - 8) / 8;
+          var v = Math.abs(Math.sin(el * 7 + i * 1.3) * Math.sin(el * 2.3 + i * .4));
+          b.style.height = Math.round(4 + v * (6 + 16 * center)) + 'px';
+        });
+      }, 90);
+    }
+    async function loop() {
+      if (reduce) { typed.textContent = phrases[0]; return; }
+      for (;;) {
+        var text = phrases[idx++ % phrases.length];
+        typed.textContent = '';
+        await wait(900);
+        key.classList.add('down'); rec.classList.remove('busy'); rec.classList.add('on'); wave(true);
+        await wait(2800);
+        key.classList.remove('down'); wave(false); rec.classList.add('busy');
+        await wait(800);
+        rec.classList.remove('on');
+        // el texto entra por bloques, como un pegado rápido
+        var words = text.split(' ');
+        for (var w = 0; w < words.length; w++) { typed.textContent += (w ? ' ' : '') + words[w]; await wait(28); }
+        await wait(3800);
+      }
+    }
+    loop();
+  })();
+</script>
+</body>
+</html>
